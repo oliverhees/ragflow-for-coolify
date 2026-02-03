@@ -1,126 +1,126 @@
 # RAGflow for Coolify
 
-**Einfaches One-Click Deployment von RAGflow auf Coolify**
+**Simple One-Click Deployment of RAGflow on Coolify**
 
-[![English](https://img.shields.io/badge/Language-English-blue)](README_EN.md)
-[![Deutsch](https://img.shields.io/badge/Sprache-Deutsch-green)](README.md)
+[![English](https://img.shields.io/badge/Language-English-blue)](README.md)
+[![Deutsch](https://img.shields.io/badge/Sprache-Deutsch-green)](README_DE.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## Über dieses Projekt
+## About this Project
 
-Dieses Repository ermöglicht ein schnelles Deployment von [RAGflow](https://github.com/infiniflow/ragflow) auf [Coolify](https://coolify.io). RAGflow ist eine leistungsstarke Open-Source RAG-Engine (Retrieval-Augmented Generation).
+This repository enables quick deployment of [RAGflow](https://github.com/infiniflow/ragflow) on [Coolify](https://coolify.io). RAGflow is a powerful open-source RAG engine (Retrieval-Augmented Generation).
 
-**Erstellt von:** [Oliver Hees](https://ai-automation-engineers.com)
-**Zur freien Verwendung für die Community**
+**Created by:** [Oliver Hees](https://ai-automation-engineers.com)
+**Free to use for the community**
 
 ---
 
-## Schnellstart
+## Quick Start
 
-### 1. Neues Projekt in Coolify erstellen
+### 1. Create New Project in Coolify
 
-1. Öffne dein Coolify Dashboard
-2. Klicke auf **+ Add Resource**
-3. Wähle **Docker Compose**
-4. Wähle **GitHub** als Quelle
+1. Open your Coolify Dashboard
+2. Click **+ Add Resource**
+3. Select **Docker Compose**
+4. Choose **GitHub** as source
 5. Repository URL:
    ```
    https://github.com/oliverhees/ragflow-for-coolify
    ```
 
-### 2. Umgebungsvariablen setzen
+### 2. Set Environment Variables
 
-Füge in Coolify unter **Environment Variables** folgende Variablen hinzu:
+Add the following variables in Coolify under **Environment Variables**:
 
 ```env
 RAGFLOW_VERSION=latest
-MYSQL_PASSWORD=dein_sicheres_passwort
-REDIS_PASSWORD=dein_sicheres_passwort
-MINIO_PASSWORD=dein_sicheres_passwort
+MYSQL_PASSWORD=your_secure_password
+REDIS_PASSWORD=your_secure_password
+MINIO_PASSWORD=your_secure_password
 ```
 
-> **Wichtig:** Verwende sichere Passwörter in Produktionsumgebungen!
+> **Important:** Use secure passwords in production environments!
 
-### 3. Domain konfigurieren
+### 3. Configure Domain
 
-1. Gehe zu **Settings** des ragflow Service
-2. Trage deine Domain ein (z.B. `ragflow.deine-domain.de`)
-3. Wähle Port **80**
-4. Coolify erstellt automatisch SSL-Zertifikate
+1. Go to **Settings** of the ragflow service
+2. Enter your domain (e.g., `ragflow.your-domain.com`)
+3. Select Port **80**
+4. Coolify automatically creates SSL certificates
 
-### 4. Deployen
+### 4. Deploy
 
-Klicke auf **Deploy** - fertig!
+Click **Deploy** - done!
 
 ---
 
-## Immer die neueste Version
+## Always the Latest Version
 
-Mit `RAGFLOW_VERSION=latest` wird bei jedem Deployment automatisch die neueste RAGflow-Version verwendet.
+With `RAGFLOW_VERSION=latest`, the newest RAGflow version is automatically used with each deployment.
 
-Für eine feste Version:
+For a fixed version:
 ```env
 RAGFLOW_VERSION=v0.23.1
 ```
 
 ---
 
-## Enthaltene Services
+## Included Services
 
-| Service | Beschreibung |
-|---------|--------------|
-| **RAGflow** | Haupt-Anwendung (Port 80) |
-| **Elasticsearch** | Vektorsuche & Indexierung |
-| **MySQL** | Relationale Datenbank |
-| **MinIO** | Object Storage für Dokumente |
-| **Redis** | Cache & Sessions |
+| Service | Description |
+|---------|-------------|
+| **RAGflow** | Main application (Port 80) |
+| **Elasticsearch** | Vector search & indexing |
+| **MySQL** | Relational database |
+| **MinIO** | Object storage for documents |
+| **Redis** | Cache & sessions |
 
 ---
 
-## Systemanforderungen
+## System Requirements
 
-| | Minimum | Empfohlen |
-|--|---------|-----------|
+| | Minimum | Recommended |
+|--|---------|-------------|
 | **RAM** | 8 GB | 16 GB |
-| **CPU** | 4 Kerne | 8 Kerne |
-| **Speicher** | 50 GB | 100 GB |
+| **CPU** | 4 cores | 8 cores |
+| **Storage** | 50 GB | 100 GB |
 
 ---
 
 ## MinIO Console (Optional)
 
-Um die MinIO Console über eine eigene Domain erreichbar zu machen:
+To access the MinIO Console via its own domain:
 
-1. Erstelle in Coolify einen zusätzlichen Service-Eintrag für `ragflow-minio`
-2. Domain: `minio.deine-domain.de`
+1. Create an additional service entry in Coolify for `ragflow-minio`
+2. Domain: `minio.your-domain.com`
 3. Port: `9001`
 
 ---
 
-## Fehlerbehebung
+## Troubleshooting
 
-**Container starten nicht:**
-- Prüfe die Logs in Coolify
-- Elasticsearch benötigt ca. 2-3 Minuten zum Starten
+**Containers won't start:**
+- Check the logs in Coolify
+- Elasticsearch needs about 2-3 minutes to start
 
-**Nicht genug Speicher:**
-- Erhöhe `ES_HEAP_SIZE` (Standard: 2g)
+**Not enough memory:**
+- Increase `ES_HEAP_SIZE` (default: 2g)
 
 ---
 
 ## Links
 
-- [RAGflow Dokumentation](https://ragflow.io/docs/dev/)
+- [RAGflow Documentation](https://ragflow.io/docs/dev/)
 - [RAGflow GitHub](https://github.com/infiniflow/ragflow)
-- [Coolify Dokumentation](https://coolify.io/docs)
+- [Coolify Documentation](https://coolify.io/docs)
 
 ---
 
-## Lizenz
+## License
 
-MIT License - Zur freien Verwendung für die Community.
+MIT License - Free to use for the community.
 
 ---
 
