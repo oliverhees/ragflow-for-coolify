@@ -16,9 +16,8 @@ services:
   ragflow:
     image: infiniflow/ragflow:${RAGFLOW_VERSION:-latest}
     container_name: ragflow-server
-    ports:
-      - "80:80"
     expose:
+      - "80"
       - "9380"
     volumes:
       - ragflow_data:/ragflow/data
