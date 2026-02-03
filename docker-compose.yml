@@ -1,0 +1,181 @@
+# =============================================================================
+# RAGflow for Coolify
+# =============================================================================
+# Erstellt von: Oliver Hees (https://ai-automation-engineers.com)
+# Lizenz: MIT - Zur freien Verwendung für die Community
+# =============================================================================
+# Einfaches Deployment von RAGflow auf Coolify
+# Konfiguriere die Domain in Coolify für den ragflow Service (Port 80)
+# =============================================================================
+
+services:
+
+  # ===========================================================================
+  # RAGflow - Haupt-Anwendung
+  # ===========================================================================
+  ragflow:
+    image: infiniflow/ragflow:${RAGFLOW_VERSION:-latest}
+    container_name: ragflow-server
+    expose:
+      - "80"
+      - "9380"
+    volumes:
+      - ragflow_data:/ragflow/data
+      - ragflow_logs:/ragflow/logs
+    environment:
+      - MYSQL_HOST=ragflow-mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=rag_flow
+      - REDIS_HOST=ragflow-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - ES_HOST=ragflow-elasticsearch
+      - ES_PORT=9200
+      - MINIO_HOST=ragflow-minio
+      - MINIO_USER=${MINIO_USER:-rag_flow}
+      - MINIO_PASSWORD=${MINIO_PASSWORD:-infini_rag_flow}
+      - SVR_HTTP_PORT=9380
+      - RAGFLOW_HOST=0.0.0.0
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        # Replace default nginx config with RAGFlow proxy config
+        cat > /etc/nginx/sites-available/default << 'NGINXCONF'
+        server {
+            listen 80 default_server;
+            listen [::]:80 default_server;
+            server_name _;
+
+            root /ragflow/web/dist;
+            index index.html;
+
+            client_max_body_size 1024M;
+
+            gzip on;
+            gzip_types text/plain application/javascript text/css application/xml text/javascript application/json;
+
+            location ~ ^/(v1|api) {
+                proxy_pass http://127.0.0.1:9380;
+                proxy_set_header Host $$host;
+                proxy_set_header X-Real-IP $$remote_addr;
+                proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $$scheme;
+                proxy_http_version 1.1;
+                proxy_set_header Connection "";
+                proxy_buffering off;
+                proxy_read_timeout 3600s;
+                proxy_send_timeout 3600s;
+            }
+
+            location / {
+                try_files $$uri $$uri/ /index.html;
+            }
+        }
+        NGINXCONF
+
+        # Run original entrypoint
+        exec /ragflow/entrypoint.sh
+    depends_on:
+      - ragflow-elasticsearch
+      - ragflow-mysql
+      - ragflow-redis
+      - ragflow-minio
+    networks:
+      - coolify
+    restart: unless-stopped
+
+  # ===========================================================================
+  # Elasticsearch - Vektorsuche
+  # ===========================================================================
+  ragflow-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION:-8.11.3}
+    container_name: ragflow-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms${ES_HEAP_SIZE:-2g} -Xmx${ES_HEAP_SIZE:-2g}"
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - coolify
+    restart: unless-stopped
+
+  # ===========================================================================
+  # MySQL - Datenbank
+  # ===========================================================================
+  ragflow-mysql:
+    image: mysql:${MYSQL_VERSION:-8.0}
+    container_name: ragflow-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=rag_flow
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: >
+      --max_connections=1000
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+    networks:
+      - coolify
+    restart: unless-stopped
+
+  # ===========================================================================
+  # Redis - Cache
+  # ===========================================================================
+  ragflow-redis:
+    image: redis:${REDIS_VERSION:-7-alpine}
+    container_name: ragflow-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - coolify
+    restart: unless-stopped
+
+  # ===========================================================================
+  # MinIO - Object Storage
+  # ===========================================================================
+  ragflow-minio:
+    image: minio/minio:${MINIO_VERSION:-RELEASE.2024-01-18T22-51-28Z}
+    container_name: ragflow-minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_USER:-rag_flow}
+      - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD:-infini_rag_flow}
+    expose:
+      - "9000"
+      - "9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - coolify
+    restart: unless-stopped
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  ragflow_data:
+  ragflow_logs:
+  elasticsearch_data:
+  mysql_data:
+  redis_data:
+  minio_data:
+
+# =============================================================================
+# Networks - Coolify externes Netzwerk
+# =============================================================================
+networks:
+  coolify:
+    external: true
